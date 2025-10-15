@@ -25,9 +25,13 @@ jobs:
               sudo apt-get install -y python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev libtinfo6 cmake libffi-dev build-essential
               pip install --upgrade cython==0.29.34 buildozer
 
+      - name: Accept Android SDK licenses
+        run: |
+              yes | /home/runner/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+
       - name: Build with Buildozer
         run: |
-          buildozer android debug # 第四步：执行打包命令！
+              buildozer android debug
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4 # 第五步：上传打包好的 APK 文件
