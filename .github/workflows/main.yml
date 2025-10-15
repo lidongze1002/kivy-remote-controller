@@ -25,11 +25,13 @@ jobs:
               sudo apt-get install -y python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev libtinfo6 cmake libffi-dev build-essential
               pip install --upgrade cython==0.29.34 buildozer
               
-      - name: Build with Buildozer
+      - name: Download Android platform tools
         run: |
-              buildozer --version # 运行一个无害的命令，强制 buildozer 下载好所有依赖
-              yes | /home/runner/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses # 现在 sdkmanager 存在了，用它来同意协议
-              buildozer android debug # 再次运行 buildozer，这次它会直接开始编译
+              buildozer android update -v
+
+      - name: Build the APK
+        run: |
+              buildozer android debug
       - name: Upload Artifact
         uses: actions/upload-artifact@v4 # 第五步：上传打包好的 APK 文件
         with:
