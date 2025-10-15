@@ -27,8 +27,9 @@ jobs:
               
       - name: Build with Buildozer
         run: |
-              buildozer android debug
-
+              buildozer --version # 运行一个无害的命令，强制 buildozer 下载好所有依赖
+              yes | /home/runner/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses # 现在 sdkmanager 存在了，用它来同意协议
+              buildozer android debug # 再次运行 buildozer，这次它会直接开始编译
       - name: Upload Artifact
         uses: actions/upload-artifact@v4 # 第五步：上传打包好的 APK 文件
         with:
