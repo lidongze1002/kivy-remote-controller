@@ -39,6 +39,7 @@ version = 0.1
 # comma separated e.g. requirements = sqlite3,kivy
 requirements = python3,kivy,requests
 
+
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
@@ -102,6 +103,7 @@ fullscreen = 0
 
 # (int) Target Android API, should be as high as possible.
 #android.api = 31
+android.sdk_components = tools,platform-tools,build-tools;34.0.0
 
 # (int) Minimum API your APK / AAB will support.
 #android.minapi = 21
