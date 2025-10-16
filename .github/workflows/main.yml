@@ -1,4 +1,4 @@
-name: Build Kivy APK (Final Manual Setup)
+name: Build Kivy APK with Official Docker Action
 
 on:
   push:
@@ -12,54 +12,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Build with Buildozer using a reliable community Action
+        uses: pavel-d/buildozer-action@v1.6.0
+        id: buildozer
         with:
-          distribution: 'zulu'
-          java-version: '17'
-
-      - name: Install Buildozer and system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev libtinfo6 cmake libffi-dev unzip wget
-          pip install --upgrade cython==0.29.34 buildozer
-
-      - name: Manually set up Android SDK and CREATE LICENSE FILES
-        run: |
-          # 1. 下载并解压 SDK 工具
-          SDK_URL="https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
-          ANDROID_HOME="$HOME/android-sdk"
-          mkdir -p "$ANDROID_HOME/cmdline-tools"
-          wget -q -O sdk.zip "$SDK_URL"
-          unzip -q sdk.zip -d "$ANDROID_HOME/cmdline-tools"
-          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
-          rm sdk.zip
+          command: buildozer android debug
           
-          # 2. 注入环境变量
-          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
-          
-          # 3. 【终极武器】手动创建许可文件
-          mkdir -p "$ANDROID_HOME/licenses"
-          echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6df6e6a17619e1\n24333f8a63b6825ea9c5514f83c2729609c5d819" > "$ANDROID_HOME/licenses/android-sdk-license"
-          echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4cdba660f33658a0e2125a47dc78c85f1" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
-          echo -e "\neae316662785b3a32f6a738676a47a19c72e255f\n798f557c6c679a7509f06b478229bca6b78e1b19" > "$ANDROID_HOME/licenses/google-gdk-license"
-          
-
-      - name: Manually install build-tools
-        run: |
-          # 现在，sdkmanager 会直接看到许可文件，不再询问，直接安装
-          sdkmanager "build-tools;34.0.0" "platform-tools"
-
-      - name: Verify Aidl is installed
-        run: |
-          ls "$ANDROID_HOME/build-tools/34.0.0/aidl"
-
-      - name: Build with Buildozer
-        run: |
-          buildozer android debug
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
