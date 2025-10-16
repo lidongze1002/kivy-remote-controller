@@ -24,44 +24,43 @@ jobs:
           sudo apt-get install -y python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev libtinfo6 cmake libffi-dev unzip wget
           pip install --upgrade cython==0.29.34 buildozer
 
-      - name: 1. Manually Download and Unzip Android SDK Command-line Tools
+      - name: Manually set up Android SDK and CREATE LICENSE FILES
         run: |
-          # 定义下载地址和安装路径
+          # 1. 下载并解压 SDK 工具
           SDK_URL="https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
-          ANDROID_HOME_PATH="$HOME/android-sdk"
-          
-          # 创建目录，下载并解压
-          mkdir -p "$ANDROID_HOME_PATH/cmdline-tools"
+          ANDROID_HOME="$HOME/android-sdk"
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
           wget -q -O sdk.zip "$SDK_URL"
-          unzip -q sdk.zip -d "$ANDROID_HOME_PATH/cmdline-tools"
-          # Google 的 zip 包会多一层目录，需要把它移出来
-          mv "$ANDROID_HOME_PATH/cmdline-tools/cmdline-tools" "$ANDROID_HOME_PATH/cmdline-tools/latest"
+          unzip -q sdk.zip -d "$ANDROID_HOME/cmdline-tools"
+          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
           rm sdk.zip
           
-          # 将 ANDROID_HOME 和 SDK 工具路径注入到后续步骤的环境变量中
-          echo "ANDROID_HOME=$ANDROID_HOME_PATH" >> $GITHUB_ENV
-          echo "$ANDROID_HOME_PATH/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$ANDROID_HOME_PATH/platform-tools" >> $GITHUB_PATH
-
-      - name: 2. Manually Accept Licenses and Install Build-Tools
-        run: |
-          # 强制、自动接受所有许可协议
-          yes | sdkmanager --licenses
+          # 2. 注入环境变量
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
           
-          # 强制、明确地安装 platform-tools 和 build-tools。Aidl 就在这里面！
-          sdkmanager "platform-tools" "build-tools;34.0.0"
+          # 3. 【终极武器】手动创建许可文件
+          mkdir -p "$ANDROID_HOME/licenses"
+          echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6df6e6a17619e1\n24333f8a63b6825ea9c5514f83c2729609c5d819" > "$ANDROID_HOME/licenses/android-sdk-license"
+          echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4cdba660f33658a0e2125a47dc78c85f1" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+          echo -e "\neae316662785b3a32f6a738676a47a19c72e255f\n798f557c6c679a7509f06b478229bca6b78e1b19" > "$ANDROID_HOME/licenses/google-gdk-license"
+          
 
-      - name: 3. Verify Aidl is installed
+      - name: Manually install build-tools
         run: |
-          # 这是一个验证步骤，确保 aidl 真的被安装好了。如果这一步通过，后面就绝不会失败。
+          # 现在，sdkmanager 会直接看到许可文件，不再询问，直接安装
+          sdkmanager "build-tools;34.0.0" "platform-tools"
+
+      - name: Verify Aidl is installed
+        run: |
           ls "$ANDROID_HOME/build-tools/34.0.0/aidl"
 
-      - name: 4. Build with Buildozer
+      - name: Build with Buildozer
         run: |
-          # 在我们亲手搭建好的完美环境中，执行最终的编译
           buildozer android debug
 
-      - name: 5. Upload Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
