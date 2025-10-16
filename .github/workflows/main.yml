@@ -21,14 +21,47 @@ jobs:
       - name: Install Buildozer and system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev libtinfo6 cmake libffi-dev unzip
+          sudo apt-get install -y python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev libtinfo6 cmake libffi-dev unzip wget
           pip install --upgrade cython==0.29.34 buildozer
 
-      - name: Build with Buildozer
+      - name: 1. Manually Download and Unzip Android SDK Command-line Tools
         run: |
+          # 定义下载地址和安装路径
+          SDK_URL="https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+          ANDROID_HOME_PATH="$HOME/android-sdk"
+          
+          # 创建目录，下载并解压
+          mkdir -p "$ANDROID_HOME_PATH/cmdline-tools"
+          wget -q -O sdk.zip "$SDK_URL"
+          unzip -q sdk.zip -d "$ANDROID_HOME_PATH/cmdline-tools"
+          # Google 的 zip 包会多一层目录，需要把它移出来
+          mv "$ANDROID_HOME_PATH/cmdline-tools/cmdline-tools" "$ANDROID_HOME_PATH/cmdline-tools/latest"
+          rm sdk.zip
+          
+          # 将 ANDROID_HOME 和 SDK 工具路径注入到后续步骤的环境变量中
+          echo "ANDROID_HOME=$ANDROID_HOME_PATH" >> $GITHUB_ENV
+          echo "$ANDROID_HOME_PATH/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_HOME_PATH/platform-tools" >> $GITHUB_PATH
+
+      - name: 2. Manually Accept Licenses and Install Build-Tools
+        run: |
+          # 强制、自动接受所有许可协议
+          yes | sdkmanager --licenses
+          
+          # 强制、明确地安装 platform-tools 和 build-tools。Aidl 就在这里面！
+          sdkmanager "platform-tools" "build-tools;34.0.0"
+
+      - name: 3. Verify Aidl is installed
+        run: |
+          # 这是一个验证步骤，确保 aidl 真的被安装好了。如果这一步通过，后面就绝不会失败。
+          ls "$ANDROID_HOME/build-tools/34.0.0/aidl"
+
+      - name: 4. Build with Buildozer
+        run: |
+          # 在我们亲手搭建好的完美环境中，执行最终的编译
           buildozer android debug
 
-      - name: Upload Artifact
+      - name: 5. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
