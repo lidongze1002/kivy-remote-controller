@@ -103,7 +103,7 @@ android.permissions = android.permission.INTERNET, (name=android.permission.WRIT
 
 # (int) Target Android API, should be as high as possible.
 android.api = 31
-android.sdk_components = tools,platform-tools,build-tools;34.0.0
+#android.sdk_components = tools,platform-tools,build-tools;34.0.0
 
 # (int) Minimum API your APK / AAB will support.
 #android.minapi = 21
@@ -138,7 +138,7 @@ android.sdk_components = tools,platform-tools,build-tools;34.0.0
 # agreements. This is intended for automation only. If set to False,
 # the default, you will be shown the license when first running
 # buildozer.
- android.accept_sdk_license = True
+# android.accept_sdk_license = True
 
 # (str) Android entry point, default is ok for Kivy-based app
 #android.entrypoint = org.kivy.android.PythonActivity
