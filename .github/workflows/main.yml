@@ -24,6 +24,11 @@ jobs:
               sudo apt-get update
               sudo apt-get install -y python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev libtinfo6 cmake libffi-dev build-essential
               pip install --upgrade cython==0.29.34 buildozer
+      - name: Prepare Android environment and accept licenses
+        run: |
+              buildozer android update || true
+              yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+              yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;34.0.0"
               
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
